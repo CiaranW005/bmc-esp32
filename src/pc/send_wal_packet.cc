@@ -1,5 +1,10 @@
 #include "send_wal_packet.h"
 
+#include <WiFi.h>
+#include <WiFiUdp.h>
+
+WiFiUDP udp;
+
 void sendWakeOnLan(const uint8_t mac[6]) {
     uint8_t packet[102];
 

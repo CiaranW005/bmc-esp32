@@ -1,8 +1,8 @@
 #include "connect_to_wifi.h"
 
-void connect_wifi(const char* ssid, const char* password) {
-    Serial.begin(115200);
+#include <WiFi.h>
 
+void connect_wifi(const char* ssid, const char* password) {
     WiFi.begin(ssid, password);
     Serial.print("Connecting to WiFi");
 
