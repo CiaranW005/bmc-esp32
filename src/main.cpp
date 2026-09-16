@@ -1,15 +1,18 @@
 #include <Arduino.h>
-#include <WiFi.h>
+
+#include "connect_to_wifi.h"
+#include "send_wal_packet.h"
 
 #include "secrets.h" 
 
-const char* ssid = WIFI_SSID; 
-const char* password = WIFI_PASSWORD; 
+#define BOOT_BUTTON 0
+
+bool lastButtonState = HIGH;
 
 void setup() {
   Serial.begin(115200);
 
-  WiFi.begin(ssid, password);
+  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
   Serial.print("Connecting to WiFi");
 
   while (WiFi.status() != WL_CONNECTED) {
@@ -24,9 +27,13 @@ void setup() {
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
-  // digitalWrite(2, HIGH); // Turn the LED on
-  // delay(500);                      // Wait for 0.5 seconds
-  // digitalWrite(2, LOW);  // Turn the LED off
-  // delay(500);  
+  bool currentButtonState = digitalRead(BOOT_BUTTON);
+
+  if (lastButtonState == HIGH && currentButtonState == LOW) {
+    sendWakeOnLan(PC_MAC);
+  }
+
+  lastButtonState = currentButtonState;
+
+  delay(20);
 }
