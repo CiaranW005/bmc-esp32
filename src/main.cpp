@@ -10,20 +10,10 @@
 bool lastButtonState = HIGH;
 
 void setup() {
-  Serial.begin(115200);
+  Serial.begin(115200); // baud rate, communicate over 115200 bits/s
 
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
   Serial.print("Connecting to WiFi");
-
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    Serial.print(".");
-  }
-
-  Serial.println("");
-  Serial.println("Connected to WiFi");
-  Serial.print("IP Address: ");
-  Serial.println(WiFi.localIP());
 }
 
 void loop() {
