@@ -2,6 +2,7 @@
 
 #include <WiFi.h>
 #include <WiFiUdp.h>
+#include <stdint.h>
 
 WiFiUDP udp;
 

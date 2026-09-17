@@ -19,16 +19,23 @@ void webSocketEvent(WStype_t type, uint8_t* payload, size_t length) {
             break;
         
         case WStype_TEXT: {
-            String message = String((char*)payload);
+            String message = String((char*)payload, length);
 
-            Serial.println("Oracle command: ");
-            Serial.print(message);
+            Serial.print("Oracle command: ");
+            Serial.println(message);
 
             if (message == "wake") {
                 sendWakeOnLan(PC_MAC);
             }
             break;
         }
+
+        case WStype_ERROR:
+            Serial.println("Websocket error");
+            break;
+        
+        default:
+            break;
     }
 }
 
@@ -38,6 +45,9 @@ void connect_to_oracle() {
         ORACLE_PORT,
         "/device"
     );
+
+    webSocket.onEvent(webSocketEvent);
+    webSocket.setReconnectInterval(5000);
 }
 
 void handle_oracle() {
