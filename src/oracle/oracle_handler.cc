@@ -40,6 +40,12 @@ void webSocketEvent(WStype_t type, uint8_t* payload, size_t length) {
 }
 
 void connect_to_oracle() {
+    String authHeader = "Authorization: Bearer ";
+    authHeader += DEVICE_TOKEN;
+    authHeader += "\r\n";
+
+    webSocket.setExtraHeaders(authHeader.c_str());
+
     webSocket.begin(
         ORACLE_IP,
         ORACLE_PORT,
