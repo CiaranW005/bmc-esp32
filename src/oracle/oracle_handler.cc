@@ -1,5 +1,7 @@
 #include "oracle_handler.h"
 #include "secrets.h"
+#include "config.h"
+#include "device_credentials.h"
 
 #include  <WiFi.h>
 #include <WebSocketsClient.h>
@@ -40,10 +42,13 @@ void webSocketEvent(WStype_t type, uint8_t* payload, size_t length) {
 }
 
 void connect_to_oracle() {
-    webSocket.beginSSL(
+    webSocket.beginSslWithClientKey(
         ORACLE_HOST,
         ORACLE_PORT,
-        "/device"
+        "/device",
+        BMC_ROOT_CA,
+        CLIENT_CERT,
+        CLIENT_KEY
     );
 
     String bearer = "Bearer ";
