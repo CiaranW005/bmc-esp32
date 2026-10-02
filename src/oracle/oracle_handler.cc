@@ -51,10 +51,16 @@ void connect_to_oracle() {
         CLIENT_KEY
     );
 
-    String bearer = "Bearer ";
-    bearer += DEVICE_TOKEN;
+    // String bearer = "Bearer ";
+    // bearer += DEVICE_TOKEN;
 
-    webSocket.setAuthorization(bearer.c_str());
+    // // webSocket.setAuthorization(bearer.c_str());
+
+    String headers =
+        "Origin: https://device.corasfein.com:443\r\n"
+        "Authorization: Bearer " + String(DEVICE_TOKEN) + "\r\n";
+
+    webSocket.setExtraHeaders(headers.c_str());
 
     webSocket.onEvent(webSocketEvent);
     webSocket.setReconnectInterval(5000);
