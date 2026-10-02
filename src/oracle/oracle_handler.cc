@@ -62,6 +62,11 @@ void connect_to_oracle() {
 
     webSocket.setExtraHeaders(headers.c_str());
 
+    
+    webSocket.setExtraHeaders(
+        "Origin: https://device.corasfein.com\r\n"
+    );
+
     webSocket.onEvent(webSocketEvent);
     webSocket.setReconnectInterval(5000);
 }
