@@ -12,20 +12,49 @@ const int OPTO_PIN = 17;
 NetworkManagementController netManager;
 OracleHandler handler(netManager);
 
+void oracleTask(void* parameter) {
+    handler.connect();
+
+    while (true) {
+        handler.loop();
+        vTaskDelay(pdMS_TO_TICKS(10));
+    }
+}
+
+void networkTask(void* parameter) {
+    while (true) {
+        if (!netManager.isConnected()) {
+            netManager.connect();
+        }
+
+        vTaskDelay(pdMS_TO_TICKS(1000));
+    }
+}
+
 void setup() {
   Serial.begin(115200);
 
-  pinMode(OPTO_PIN, OUTPUT);
-  digitalWrite(OPTO_PIN, LOW);
-
   connect_wifi(WIFI_SSID, WIFI_PASSWORD);
 
-  netManager.connect();
-  handler.connect();
+    xTaskCreate(
+        oracleTask,
+        "OracleTask",
+        8192,
+        nullptr,
+        1,
+        nullptr
+    );
+
+    xTaskCreate(
+        networkTask,
+        "NetworkTask",
+        4096,
+        nullptr,
+        1,
+        nullptr
+    );
 }
 
 void loop() {
-  handler.loop();
   handleBootButton();
 }
-
