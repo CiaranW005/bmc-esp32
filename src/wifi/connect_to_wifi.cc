@@ -1,4 +1,4 @@
-#include "connect_to_wifi.h"
+#include "wifi/connect_to_wifi.h"
 
 #include <WiFi.h>
 

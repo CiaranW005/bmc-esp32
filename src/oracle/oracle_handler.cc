@@ -1,16 +1,57 @@
-#include "oracle_handler.h"
-#include "secrets.h"
-#include "config.h"
-#include "device_credentials.h"
+#include "oracle/oracle_handler.h"
+#include "config/secrets.h"
+#include "config/config.h"
+#include "config/device_credentials.h"
+#include "board/management_controller.h"
 
 #include  <WiFi.h>
 #include <WebSocketsClient.h>
 
-#include "send_wal_packet.h"
+OracleHandler::OracleHandler(ManagementController& manager): manager_(manager) {};
 
-WebSocketsClient webSocket;
+void OracleHandler::connect() {
+    webSocket_.beginSslWithClientKey(
+        ORACLE_HOST,
+        ORACLE_PORT,
+        "/device",
+        BMC_ROOT_CA,
+        CLIENT_CERT,
+        CLIENT_KEY
+    );
 
-void webSocketEvent(WStype_t type, uint8_t* payload, size_t length) {
+    String headers =
+        "Origin: https://device.corasfein.com:443\r\n"
+        "Authorization: Bearer " + String(DEVICE_TOKEN) + "\r\n";
+
+    webSocket_.setExtraHeaders(headers.c_str());
+
+    webSocket_.onEvent(
+        [this](WStype_t type, uint8_t* payload, size_t length) {
+            this->handleEvent(type, payload, length);
+        }
+    );
+    
+    webSocket_.setReconnectInterval(5000);
+}
+
+void OracleHandler::loop() {
+    webSocket_.loop();
+}
+
+bool OracleHandler::isConnected() {
+    return webSocket_.isConnected();
+}
+
+bool OracleHandler::send(const String& message) {
+    if (!this->isConnected()) {
+        return false;
+    }
+
+    return webSocket_.sendTXT(message.c_str());
+}
+
+
+void OracleHandler::handleEvent(WStype_t type, uint8_t* payload, size_t length) {
     switch (type) {
         case WStype_CONNECTED:
             Serial.println("Connected to Oracle");
@@ -27,7 +68,16 @@ void webSocketEvent(WStype_t type, uint8_t* payload, size_t length) {
             Serial.println(message);
 
             if (message == "wake") {
-                sendWakeOnLan(PC_MAC);
+                manager_.powerOn();
+            }
+            else if (message == "reset") {
+                manager_.reset();
+            } 
+            else if (message == "power_off") {
+                manager_.powerOff();
+            }
+            else {
+                Serial.println("Unknown Oracle Command");
             }
             break;
         }
@@ -39,38 +89,4 @@ void webSocketEvent(WStype_t type, uint8_t* payload, size_t length) {
         default:
             break;
     }
-}
-
-void connect_to_oracle() {
-    webSocket.beginSslWithClientKey(
-        ORACLE_HOST,
-        ORACLE_PORT,
-        "/device",
-        BMC_ROOT_CA,
-        CLIENT_CERT,
-        CLIENT_KEY
-    );
-
-    // String bearer = "Bearer ";
-    // bearer += DEVICE_TOKEN;
-
-    // // webSocket.setAuthorization(bearer.c_str());
-
-    String headers =
-        "Origin: https://device.corasfein.com:443\r\n"
-        "Authorization: Bearer " + String(DEVICE_TOKEN) + "\r\n";
-
-    webSocket.setExtraHeaders(headers.c_str());
-
-    
-    webSocket.setExtraHeaders(
-        "Origin: https://device.corasfein.com\r\n"
-    );
-
-    webSocket.onEvent(webSocketEvent);
-    webSocket.setReconnectInterval(5000);
-}
-
-void handle_oracle() {
-    webSocket.loop();
 }
