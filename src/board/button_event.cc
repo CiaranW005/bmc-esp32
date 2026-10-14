@@ -3,8 +3,8 @@
 
 #include <Arduino.h>
 
-#include "board/power_controller.h"
-#include "board/network_controller.h"
+#include "controllers/power_controller.h"
+#include "controllers/network_controller.h"
 
 #define BOOT_BUTTON 0
 

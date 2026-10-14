@@ -1,8 +1,8 @@
-#include "board/power_controller.h"
+#include "controllers/power_controller.h"
 
 #include <Arduino.h>
 
-PowerManagementController::PowerManagementController(): ManagementController("POWER") {
+PowerManagementController::PowerManagementController(): ManagementController("POWER_CTRL") {
     pinMode(OPTO_PIN, OUTPUT);
     digitalWrite(OPTO_PIN, LOW);
 

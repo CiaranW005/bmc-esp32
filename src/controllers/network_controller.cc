@@ -1,4 +1,4 @@
-#include "board/network_controller.h"
+#include "controllers/network_controller.h"
 #include "config/secrets.h"
 #include "protocol/protocol.h"
 
@@ -66,6 +66,7 @@ void NetworkManagementController::disconnect() {
 
     std::lock_guard<std::mutex> lock(clientMutex_);
     client_.stop();
+    logger_.info("Disconnected from PC Agent");
 }
 
 bool NetworkManagementController::isConnected() {

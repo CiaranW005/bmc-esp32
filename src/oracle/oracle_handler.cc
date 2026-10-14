@@ -2,14 +2,14 @@
 #include "config/secrets.h"
 #include "config/config.h"
 #include "config/device_credentials.h"
-#include "board/management_controller.h"
+#include "controllers/management_controller.h"
 
 #include  <WiFi.h>
 #include <WebSocketsClient.h>
 
 OracleHandler::OracleHandler(ManagementController& manager): manager_(manager) {};
 
-void OracleHandler::connect() {
+void OracleHandler::begin() {
     webSocket_.beginSslWithClientKey(
         ORACLE_HOST,
         ORACLE_PORT,
@@ -34,6 +34,10 @@ void OracleHandler::connect() {
     webSocket_.setReconnectInterval(5000);
 }
 
+void OracleHandler::disconnect() {
+    webSocket_.disconnect();
+}
+
 void OracleHandler::loop() {
     webSocket_.loop();
 }
@@ -50,22 +54,20 @@ bool OracleHandler::send(const String& message) {
     return webSocket_.sendTXT(message.c_str());
 }
 
-
 void OracleHandler::handleEvent(WStype_t type, uint8_t* payload, size_t length) {
     switch (type) {
         case WStype_CONNECTED:
-            Serial.println("Connected to Oracle");
+            logger_.info("Connected to Oracle");
             break;
         
         case WStype_DISCONNECTED:
-            Serial.println("Disconnected from Oracle");
+            logger_.info("Disconnected from Oracle");
             break;
         
         case WStype_TEXT: {
             String message = String((char*)payload, length);
 
-            Serial.print("Oracle command: ");
-            Serial.println(message);
+            logger_.info(("Oracle command: " + message).c_str());
 
             if (message == "wake") {
                 manager_.powerOn();
@@ -77,13 +79,13 @@ void OracleHandler::handleEvent(WStype_t type, uint8_t* payload, size_t length) 
                 manager_.powerOff();
             }
             else {
-                Serial.println("Unknown Oracle Command");
+                logger_.error("Unknown Oracle Command");
             }
             break;
         }
 
         case WStype_ERROR:
-            Serial.println("Websocket error");
+            logger_.error("Websocket error");
             break;
         
         default:

@@ -3,10 +3,12 @@
 #include "management_controller.h"
 #include "protocol/packet.h"
 
-#include <mutex>
 #include <Arduino.h>
-#include <WiFi.h>
-#include <WiFiUdp.h>
+#include <NetworkClient.h>
+#include <NetworkUdp.h>
+
+#include <mutex>
+#include <optional>
 
 struct CommandResponse {
     ManagementResult result;
@@ -15,7 +17,7 @@ struct CommandResponse {
 
 class NetworkManagementController: public ManagementController {
 public:
-    NetworkManagementController(): ManagementController("NETWORK") {}
+    NetworkManagementController(): ManagementController("NET_CTRL") {}
 
     ManagementPriority priority() const override;
     
@@ -44,9 +46,9 @@ public:
     CommandResponse sendCommand(MessageType type);
 
 private:
-    WiFiUDP udp_;
-    WiFiClient client_;
-
+    NetworkUDP udp_;
+    NetworkClient client_;
+    
     std::mutex clientMutex_;
 
     bool send(const Message& message);

@@ -29,6 +29,7 @@ enum class ManagementPriority {
 class ManagementController {
 public:
     ManagementController(const char* component): logger_(component) {}
+    
     virtual ManagementPriority priority() const = 0;
     
     virtual ManagementResult powerOn() = 0;
