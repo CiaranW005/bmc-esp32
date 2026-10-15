@@ -3,8 +3,13 @@
 #include <Arduino.h>
 #include <stdint.h>
 
-constexpr char ORACLE_HOST[] = "device.corasfein.com";
-constexpr uint16_t ORACLE_PORT = 443;
+#ifdef ORACLE_LOCAL
+    #define ORACLE_HOST "192.168.1.67"
+    #define ORACLE_PORT 8080
+#else
+    #define ORACLE_HOST "device.corasfein.com"
+    #define ORACLE_PORT 443
+#endif
 
 static const char BMC_ROOT_CA[] PROGMEM = R"EOF(
 -----BEGIN CERTIFICATE-----

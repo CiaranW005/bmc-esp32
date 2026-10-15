@@ -5,6 +5,7 @@
 
 #include <ArduinoJson.h>
 #include <type_traits>
+#include <string>
 
 /**
  * Serialises a protocol packet into JSON.
@@ -19,11 +20,16 @@ template <typename T>
 inline String serialisePacket(const T& packet) {
     JsonDocument doc;
 
+    doc["id"] = packet.id;
     doc["timestamp"] = packet.timestamp;
 
     if constexpr (std::is_same_v<T, Message>) {
         doc["type"] = toString(packet.type);
-        doc["body"] = packet.body;
+        doc["body"] = serialized(packet.body);
+
+        if (!packet.replyTo.empty()) {
+            doc["reply_to"] = packet.replyTo;
+        }
     }
     else if constexpr (std::is_same_v<T, Acknowledgement>) {
         doc["status"] = toString(packet.status);
@@ -53,16 +59,19 @@ inline PacketVariant deserialisePacket(const String& raw) {
 
     if (error) {
         return Acknowledgement{
+            "",
             0,
             AckStatus::Error,
             "Invalid JSON"
         };
     }
 
+    std::string id = doc["id"].as<std::string>();
     uint64_t timestamp = doc["timestamp"] | uint64_t{0};
 
     if (doc["status"].is<const char*>()) {
         return Acknowledgement{
+            id,
             timestamp,
             fromString(
                 doc["status"].as<String>(),
@@ -73,17 +82,23 @@ inline PacketVariant deserialisePacket(const String& raw) {
     }
 
     if (doc["type"].is<const char*>()) {
+        String body;
+        serializeJson(doc["body"], body);
+
         return Message{
+            id,
             timestamp,
             fromString(
                 doc["type"].as<String>(),
                 MessageType::Unknown
             ),
-            doc["body"].as<String>()
+            body,
+            doc["reply_to"].as<std::string>()
         };
     }
 
     return Acknowledgement{
+        id,
         timestamp,
         AckStatus::InvalidCommand,
         "Packet contained neither type nor status"

@@ -3,12 +3,15 @@
 #include <Arduino.h>
 #include <variant>
 #include <utility>
+#include <string>
 
 enum class MessageType {
+    Wake,
     Reset,
     PowerOff,
     Telemetry,
     Heartbeat,
+    CommandResult,
     Unknown
 };
 
@@ -20,23 +23,41 @@ enum class AckStatus {
 };
 
 struct Packet {
+    std::string id;
     uint64_t timestamp;
 };
 
 struct Message : Packet {
     MessageType type;
     String body;
+    std::string replyTo;
 
-    Message(uint64_t timestamp, MessageType type, String body)
-        : Packet{timestamp}, type(type), body(std::move(body)) {}
+    Message(
+        std::string id, 
+        uint64_t timestamp, 
+        MessageType type, 
+        String body = "null",
+        std::string replyTo = ""
+    )
+        : Packet{std::move(id), timestamp}, 
+          type(type), 
+          body(std::move(body)),
+          replyTo(std::move(replyTo)) {}
 };
 
 struct Acknowledgement : Packet {
     AckStatus status;
     String error;
 
-    Acknowledgement(uint64_t timestamp, AckStatus status, String error)
-        : Packet{timestamp}, status(status), error(std::move(error)) {}
+    Acknowledgement(
+        std::string id,
+        uint64_t timestamp, 
+        AckStatus status, 
+        String error = ""
+    )
+        : Packet{std::move(id), timestamp}, 
+          status(status), 
+          error(std::move(error)) {}
 };
 
 /**

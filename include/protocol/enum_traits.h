@@ -12,11 +12,13 @@ struct EnumStringEntry {
 };
 
 constexpr EnumStringEntry<MessageType> MESSAGE_TYPES[] = {
-    {MessageType::Reset,     "reset"},
-    {MessageType::PowerOff,  "power_off"},
-    {MessageType::Telemetry, "telemetry"},
-    {MessageType::Heartbeat, "heartbeat"},
-    {MessageType::Unknown,   "unknown"},
+    {MessageType::Wake,          "wake"},
+    {MessageType::Reset,         "reset"},
+    {MessageType::PowerOff,      "power_off"},
+    {MessageType::Telemetry,     "telemetry"},
+    {MessageType::Heartbeat,     "heartbeat"},
+    {MessageType::CommandResult, "command_result"},
+    {MessageType::Unknown,       "unknown"},
 };
 
 constexpr EnumStringEntry<AckStatus> ACK_STATUSES[] = {

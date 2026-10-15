@@ -50,7 +50,7 @@ namespace {
             if (networkManager.isConnected()) {
                 handler.loop();
             }
-
+            
             vTaskDelay(pdMS_TO_TICKS(100));
         }
     }
@@ -71,23 +71,52 @@ namespace {
                 lastGen = currentGen;
                 controllerManager.disconnect();
             }
+            
+            handler.processCommand();
+            if (auto request = handler.takeTelemetryRequest()) {
+                ManagementResult started = controllerManager.sendCommand(
+                    MessageType::Telemetry,
+                    1500,
+                    [request = *request](const ResponseResult& result) {
+                        // Setup/send failures are handled by the immediate return below.
+                        if (result.err == ResponseError::Canceled) {
+                            return;
+                        }
 
-            if (!networkManager.isConnected()) {
-                vTaskDelay(pdMS_TO_TICKS(500));
-                continue;
+                        handler.telemetryCompleted(request, result);
+                    }
+                );
+
+                if (started != ManagementResult::Success) {
+                    handler.telemetryCompleted(
+                        *request,
+                        {std::nullopt, ResponseError::DeliveryFailed}
+                    );
+                }
             }
 
-            if (!controllerManager.isConnected()) {
-                controllerManager.connect();
+            if (networkManager.isConnected()) {
+                if (!controllerManager.isConnected()) {
+                    controllerManager.connect();
+                } else {
+                    controllerManager.update();
+                }
             }
 
-            vTaskDelay(pdMS_TO_TICKS(1000));
+            controllerManager.tick();
+            vTaskDelay(pdMS_TO_TICKS(100));
         }
     }
 }
 
 void startTasks() {
     Logger::begin(networkManager);
+
+    controllerManager.setCompletionHandler(
+        [](MessageType type, const ResponseResult& result) {
+            handler.commandCompleted(type, result);
+        }
+    );
 
     xTaskCreate(networkTask, "NetworkTask", 4096, &networkManager, 2, nullptr);
     xTaskCreate(oracleTask, "OracleTask", 8192, nullptr, 1, nullptr);
