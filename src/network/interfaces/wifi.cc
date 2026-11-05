@@ -12,7 +12,6 @@ bool WiFiInterface::connect() {
 
     logger_.info("Connecting to WiFi");
 
-    int dots = 0;
     while (WiFi.status() != WL_CONNECTED) {
         if (millis() - start > TIMEOUT_MS) {
             logger_.error("WiFi connection timed out");

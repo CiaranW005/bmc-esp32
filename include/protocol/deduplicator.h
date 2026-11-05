@@ -9,7 +9,9 @@ class Deduplicator {
 public:
     explicit Deduplicator(uint32_t lifetimeMs = 300000)
         : lifetimeMs_{lifetimeMs} {}
-
+    
+    // Record unseen IDs and return true for IDs already within the expiry window.
+    // Repeated checks do not extend the original expiry time.
     bool isDuplicate(const std::string& id);
 
 private:

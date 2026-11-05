@@ -11,6 +11,8 @@
     #define ORACLE_PORT 443
 #endif
 
+// Trust anchor used to verify the production Oracle server certificate.
+// The device's client certificate and private key are configured separately.
 static const char BMC_ROOT_CA[] PROGMEM = R"EOF(
 -----BEGIN CERTIFICATE-----
 MIIBpjCCAU2gAwIBAgIUeEMX11GSzqGFuB9o2359mBpD1NIwCgYIKoZIzj0EAwIw

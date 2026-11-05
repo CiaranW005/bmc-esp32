@@ -12,6 +12,9 @@ PowerManagementController::PowerManagementController(): ManagementController("PO
 ManagementPriority PowerManagementController::priority() const {return ManagementPriority::Power;}
 
 ManagementResult PowerManagementController::pulsePowerButton(unsigned long duration) {
+    // Simulate holding the motherboard power button through the optocoupler.
+    // Feedback is expected HIGH while asserted and LOW after release.
+    // Blocks for approximately duration + 10 ms; duration must be at least 10 ms.
     digitalWrite(OPTO_PIN, HIGH);
     delay(10);
 

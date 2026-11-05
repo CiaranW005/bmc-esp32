@@ -15,6 +15,7 @@ LogQueue::LogQueue() {
 bool LogQueue::push(LogEntry& entry) {
     {
         std::lock_guard<std::mutex> lock(mutex_);
+        // When the queue is full, discard the incoming entry and retain queued logs.
         if (freeHead_ == -1) {
             return false;
         }

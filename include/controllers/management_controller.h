@@ -9,10 +9,9 @@ enum class ManagementResult {
 };
 
 /**
- * Defines the escalation order for management controllers.
- *
- * Lower values are preferred. Higher values represent more
- * invasive operations and are used when lower levels fail.
+ * Defines the preferred order for management controllers.
+ * Lower values represent less invasive methods.
+ * Callers must implement any selection or fallback behavior.
  */
 enum class ManagementPriority {
     Network = 100,

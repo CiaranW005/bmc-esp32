@@ -41,7 +41,9 @@ ManagementResult NetworkManagementController::powerOn() {
         );
         return ManagementResult::Success;
     }
-
+    
+    // Sending WoL starts the wake attempt. Confirm success only when the PC agent
+    // connects within 50 seconds; tick() reports a timeout otherwise.
     pendingWake_ = PendingWake{millis() + 50000};
 
     uint8_t packet[102];
@@ -164,7 +166,9 @@ void NetworkManagementController::update() {
     {
         std::lock_guard<std::mutex> lock(clientMutex_);
         if (!client_.connected()) return;
-
+        
+        // TCP may split a packet across reads. Preserve partial JSON until a newline
+        // arrives, then process one complete packet per update.
         while (client_.available()) {
             char c = static_cast<char>(client_.read());
 
@@ -205,6 +209,8 @@ void NetworkManagementController::update() {
                 return;
             }
 
+            // Acknowledge retransmissions again so the sender can stop retrying,
+            // but process each message ID only once within the deduplication window.
             bool duplicate = dedup_.isDuplicate(p.id);
 
             if (!send(Acknowledgement{
@@ -237,6 +243,8 @@ ManagementResult NetworkManagementController::sendCommand(
         "null"
     };
 
+    // Track delivery acknowledgement separately from the command response.
+    // Register both before sending so an immediate reply can be matched.
     if (!responses_.track(message, timeoutMs, std::move(complete))) return ManagementResult::Failed;
 
     if (!tracker_.track(message, RetryPolicy{3000, 0})) {

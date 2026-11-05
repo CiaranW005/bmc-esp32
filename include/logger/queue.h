@@ -45,6 +45,8 @@ private:
         int prev = -1;
     };
 
+    // Fixed node pool shared by the queued-entry list and the free-slot list.
+    // Links are array indices; -1 marks the end of either list.
     Node nodes_[CAPACITY];
 
     int head_ = -1;

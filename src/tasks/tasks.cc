@@ -9,6 +9,10 @@
 #include "logger/logger.h"
 #include "config/secrets.h"
 
+// The network task monitors connectivity, the Oracle task services WebSocket
+// traffic, and the controller task executes PC commands.
+// Commands and replies pass between the Oracle and controller tasks via
+// mutex-protected state in OracleHandler.
 namespace {
     bmc::NetworkManager networkManager(WIFI_SSID, WIFI_PASSWORD);
     NetworkManagementController controllerManager;
@@ -30,13 +34,14 @@ namespace {
         while (!networkManager.isConnected()) {
             vTaskDelay(pdMS_TO_TICKS(100));
         }
-
+        // An interface change invalidates existing connections, even if the network remains available. 
         uint32_t lastGen = networkManager.generation();
         handler.begin();
 
         while (true) {
             uint32_t currentGen = networkManager.generation();
 
+            // Recreate the Oracle connection when the selected network interface changes.
             if (currentGen != lastGen) {
                 lastGen = currentGen;
 

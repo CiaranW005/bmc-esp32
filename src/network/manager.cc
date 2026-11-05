@@ -6,7 +6,8 @@
 namespace bmc {
 
 void NetworkManager::begin() {
-
+    // Prefer Ethernet, allowing up to three seconds for link and IP readiness.
+    // Attempt WiFi if Ethernet is unavailable during startup.
     if (ethernet_.connect()) {
         unsigned long start = millis();
 
@@ -64,6 +65,8 @@ uint32_t NetworkManager::generation() const {
     return generation_.load();
 }
 
+// Increment the generation whenever the selected interface changes so
+// dependent tasks can discard connections created on the previous interface.
 void NetworkManager::setActive(bmc::NetworkInterface* interface) {
     if (active_.load() == interface) return;
 

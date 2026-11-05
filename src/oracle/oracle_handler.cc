@@ -112,6 +112,8 @@ bool OracleHandler::send(const String& message) {
 void OracleHandler::processCommand() {
     std::optional<Message> request;
 
+    // Claim the queued command under the mutex, then execute outside the lock.
+    // Success means the operation was accepted; completion may arrive later.
     {
         std::lock_guard<std::mutex> lock(commandMutex_);
 
@@ -174,7 +176,8 @@ void OracleHandler::commandCompleted(
         return;
     }
 
-    // Reset/power-off report failures only.
+    // Suppress response timeouts for reset and power-off because the PC agent
+    // may disconnect as the requested operation takes effect.
     if (result.err == ResponseError::Timeout &&
         type != MessageType::Wake) {
         return;
@@ -217,6 +220,8 @@ void OracleHandler::telemetryCompleted(
     const Message& request,
     const ResponseResult& result
 ) {
+    // Report the PC as unavailable unless the agent returns valid telemetry
+    // containing a boolean "pc" field.
     bool pcAvailable = false;
 
     if (result.err == ResponseError::None &&
@@ -261,7 +266,9 @@ void OracleHandler::queueReply(
         body,
         request.id
     };
-
+    
+    // Keep only the latest telemetry request waiting for the controller task.
+    // A new request replaces any request that has not yet been taken.
     std::lock_guard<std::mutex> lock(commandMutex_);
     replies_.push_back(std::move(response));
 }
@@ -331,7 +338,9 @@ void OracleHandler::handleEvent(WStype_t type, uint8_t* payload, size_t length) 
                         send(serialisePacket(ack));
                         return;
                     }
-
+                    
+                    // Acknowledge retransmissions again so the sender can stop retrying,
+                    // but process each message ID only once within the deduplication window.
                     bool duplicate = dedup_.isDuplicate(p.id);
 
                     Acknowledgement ack{

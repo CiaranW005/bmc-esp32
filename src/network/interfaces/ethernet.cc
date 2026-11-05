@@ -4,6 +4,8 @@
 #include <SPI.h>
 #include <ETH.h>
 
+// GPIO mapping for the external W5500 SPI Ethernet module.
+// ETH_RST = -1 means no reset GPIO is supplied to the driver.
 #define ETH_INT   9
 #define ETH_CS    10
 #define ETH_SCK   12

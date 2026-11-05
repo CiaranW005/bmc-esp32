@@ -19,19 +19,23 @@ public:
     ManagementPriority priority() const override;
     
     /**
-     * Sends a Wake-on-LAN magic packet to the configured PC.
-     * Success indicates transmission, not confirmed startup.
+     * Starts a Wake-on-LAN attempt unless the PC agent is already connected.
+     * Success means the attempt was accepted, not that startup is confirmed.
+     * The completion handler reports connection success or timeout.
      */
     ManagementResult powerOn() override;
     
     /**
      * Requests a graceful shutdown through the PC agent.
-     * Requires an active connection and acknowledgement.
+     * Requires an active PC agent connection.
+     * Success means the request was sent; delivery and results are handled later.
      */
     ManagementResult powerOff() override;
+
     /**
      * Requests a graceful reboot through the PC agent.
-     * Requires an active connection and acknowledgement.
+     * Requires an active PC agent connection.
+     * Success means the request was sent; delivery and results are handled later.
      */
     ManagementResult reset() override;
 

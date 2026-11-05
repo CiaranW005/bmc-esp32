@@ -54,6 +54,8 @@ void AckTracker::checkTimeouts() {
         for (auto it = pending_.begin(); it != pending_.end();) {
             PendingMessage& pending = it->second;
 
+            // Compare by signed subtraction to handle millis() wrapping.
+            // This assumes deadlines are less than 2^31 milliseconds ahead.
             if (static_cast<int32_t>(now - pending.deadline) < 0) {
                 it++;
                 continue;
@@ -74,7 +76,9 @@ void AckTracker::checkTimeouts() {
             ++it;
         }
     }
-
+    
+    // Invoke callbacks after releasing the tracker mutex because callbacks
+    // may call back into tracking code.
     for (const Message& message : retries) {
         if (!isPending(message.id)) continue;
 

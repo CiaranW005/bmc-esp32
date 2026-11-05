@@ -20,6 +20,7 @@ void handleBootButton() {
 
     bool currentButtonState = digitalRead(BOOT_BUTTON);
 
+    // Detect the active-low press edge. No action is currently assigned.
     if (lastButtonState == HIGH && currentButtonState == LOW) {
         // pulsePowerButton();
         // sendWakeOnLan(PC_MAC);

@@ -60,6 +60,7 @@ void Logger::error(const char* message) {
 }
 
 void Logger::loggingTask(void* parameter) {
+    // FreeRTOS requires this parameter; unused because the task accesses static logger state.
     while (true) {
         ulTaskNotifyTake(pdTRUE, pdMS_TO_TICKS(1000));
 
@@ -76,8 +77,10 @@ void Logger::loggingTask(void* parameter) {
                 sent |= udpTransport_.send(entry);
             }
 
+            // Retain the entry if neither transport succeeds.
+            // Success from either transport is sufficient to remove it from the queue.
             if (!sent) break;
-            
+
             queue_.pop(entry.id);
         }
     }

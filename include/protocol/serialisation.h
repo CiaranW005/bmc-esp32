@@ -23,8 +23,11 @@ inline String serialisePacket(const T& packet) {
     doc["id"] = packet.id;
     doc["timestamp"] = packet.timestamp;
 
-    if constexpr (std::is_same_v<T, Message>) {
+    if constexpr (std::is_same_v<T, Message>) { 
         doc["type"] = toString(packet.type);
+
+        // body already contains JSON; embed it directly rather than escaping it
+        // as a string. Callers must supply valid JSON, including "null" for no body.
         doc["body"] = serialized(packet.body);
 
         if (!packet.replyTo.empty()) {
